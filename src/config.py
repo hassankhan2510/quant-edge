@@ -104,3 +104,33 @@ AV_INTERVALS = {
     "1d": "daily",
     "1wk": "weekly",
 }
+
+# ─── Market Hours Logic ───────────────────────────────────────
+from datetime import datetime, timezone
+
+def is_market_open(market_type: str = "forex") -> bool:
+    """
+    Check if the specific market is currently open.
+    Forex: Sun 22:00 UTC to Fri 22:00 UTC
+    PSX: Mon-Fri ~04:00 to 11:30 UTC
+    """
+    now = datetime.now(timezone.utc)
+    weekday = now.weekday()  # 0=Mon, 6=Sun
+    hour = now.hour
+
+    if market_type == "forex":
+        if weekday == 5:  # Saturday
+            return False
+        if weekday == 6:  # Sunday
+            return hour >= 21  # Open prep starts slightly before Sydney
+        if weekday == 4:  # Friday
+            return hour < 22  # Close at 22:00 UTC Friday
+        return True
+
+    if market_type == "psx":
+        if weekday > 4:  # Saturday or Sunday
+            return False
+        # PSX Trading Hours: ~04:00 - 11:30 UTC Mon-Fri
+        return 3 <= hour <= 12  # Including some cushion for pre/post analysis
+
+    return True

@@ -49,6 +49,20 @@ def main():
     print(f"\n🔧 Quant Edge — Running pipeline: {args.pipeline}")
     if args.dry_run:
         print("  ⚠ DRY RUN MODE — no Telegram, no Supabase writes")
+    else:
+        # Market Hours Bypass (Safety Net)
+        from src.config import is_market_open
+        
+        is_forex = args.pipeline in ["london", "newyork", "review", "swing-daily", "swing-monday", "swing-friday"]
+        is_psx = args.pipeline in ["psx-daily", "psx-weekly"]
+        
+        if is_forex and not is_market_open("forex"):
+            print(f"  🛑 Market Closed (Forex Weekend) — Skipping pipeline execution.")
+            return
+
+        if is_psx and not is_market_open("psx"):
+            print(f"  🛑 Market Closed (PSX Weekend/After Hours) — Skipping pipeline execution.")
+            return
 
     try:
         if args.pipeline == "london":
