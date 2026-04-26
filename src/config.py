@@ -49,9 +49,9 @@ DEFAULT_OBV_SLOPE_PERIOD = 10
 DEFAULT_ROC_PERIOD = 10
 
 # ─── Scoring Thresholds ──────────────────────────────────────
-SCORE_EXECUTE = 75      # Score >= 75 → EXECUTE (strong setup)
-SCORE_DEVELOPING = 60   # 60 <= Score < 75 → DEVELOPING / CONDITIONAL
-SCORE_NO_TRADE = 60     # Score < 60 → NO TRADE / WAIT
+SCORE_EXECUTE = 65      # Lowered since AI handles final conditional confluences (Score >= 65)
+SCORE_DEVELOPING = 50   # 50 <= Score < 65 → DEVELOPING / CONDITIONAL
+SCORE_NO_TRADE = 50     # Score < 50 → NO TRADE / WAIT
 
 # ─── Risk Parameters ─────────────────────────────────────────
 RISK_PER_TRADE_PCT = 1.0        # 1% of capital per trade

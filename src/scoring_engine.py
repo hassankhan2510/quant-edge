@@ -198,6 +198,23 @@ def _score_factor(factor_name: str, metrics: dict, pair: str) -> float:
         roc = abs(metrics.get("roc", 0))
         return normalize_to_100(roc, 0, 1.5)
 
+    elif factor_name == "hurst_regime":
+        hurst = metrics.get("hurst_exponent", 0.5)
+        # Score absolute distance from random walk (0.5)
+        # 0.5 = 0 score, 0.35 or 0.65 = 100 score
+        distance = abs(hurst - 0.5)
+        return normalize_to_100(distance, 0, 0.15)
+
+    elif factor_name == "cvd_divergence":
+        cvd = abs(metrics.get("cvd_proxy", 0))
+        # High volume delta = strong institutional flow
+        return normalize_to_100(cvd, 0, 15.0)
+
+    elif factor_name == "vwap_sigma_extreme":
+        sigma_stage = metrics.get("vwap_sigma_stage", 0)
+        # Higher sigma stage = extreme level = higher score
+        return normalize_to_100(sigma_stage, 0, 3)
+
     else:
         return 50.0  # Unknown factor defaults to neutral
 

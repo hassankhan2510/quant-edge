@@ -47,25 +47,27 @@ PAIR_PROFILES = {
             "lr_period": 20,
             "obv_slope_period": 10,
             "roc_period": 10,
+            "cvd_period": 14,
+            "ks_period": 20,
         },
 
         # Day trading scoring weights
         "day_scoring_weights": {
             "atr_regime": 0.25,         # Gold's daily range varies massively
             "dxy_correlation": 0.20,    # Gold-DXY inverse is critical
-            "zscore_mean_rev": 0.20,    # Gold mean-reverts aggressively from extremes
-            "volume_expansion": 0.15,   # Real moves need volume in Gold
-            "rsi_condition": 0.10,      # RSI divergences work well on Gold
-            "session_quality": 0.10,    # Gold's real moves = London+NY
+            "zscore_mean_rev": 0.15,    # Gold mean-reverts aggressively from extremes
+            "hurst_regime": 0.15,
+            "cvd_divergence": 0.15,
+            "vwap_sigma_extreme": 0.10,
         },
 
         # Swing scoring weights
         "swing_scoring_weights": {
             "atr_regime": 0.20,
             "dxy_correlation": 0.25,    # DXY even more important on swing
-            "trend_strength": 0.20,     # ADX + slope
-            "momentum": 0.15,          # MACD + ROC
-            "volume_expansion": 0.10,
+            "hurst_regime": 0.20,
+            "cvd_divergence": 0.15,
+            "vwap_sigma_extreme": 0.10,
             "zscore_mean_rev": 0.10,
         },
 
@@ -125,23 +127,25 @@ PAIR_PROFILES = {
             "lr_period": 20,
             "obv_slope_period": 10,
             "roc_period": 12,       # Slightly longer for EUR trends
+            "cvd_period": 14,
+            "ks_period": 20,
         },
 
         "day_scoring_weights": {
-            "trend_strength": 0.25,     # EUR trends cleanly
+            "trend_strength": 0.20,     # EUR trends cleanly
             "dxy_correlation": 0.20,    # EURUSD ≈ inverse DXY
-            "bb_squeeze": 0.20,         # Squeeze → expansion is EUR's signature
-            "momentum": 0.15,           # MACD histogram acceleration
-            "lr_slope": 0.10,           # Trend direction quantified
-            "volume_expansion": 0.10,   # Confirms institutional participation
+            "bb_squeeze": 0.15,         # Squeeze → expansion is EUR's signature
+            "hurst_regime": 0.20,
+            "cvd_divergence": 0.15,
+            "vwap_sigma_extreme": 0.10,
         },
 
         "swing_scoring_weights": {
             "trend_strength": 0.25,
             "dxy_correlation": 0.25,
-            "momentum": 0.20,
-            "lr_slope": 0.15,
-            "volume_expansion": 0.10,
+            "hurst_regime": 0.20,
+            "cvd_divergence": 0.15,
+            "vwap_sigma_extreme": 0.10,
             "atr_regime": 0.05,
         },
 
@@ -199,24 +203,25 @@ PAIR_PROFILES = {
             "lr_period": 15,        # Shorter for GBP's faster moves
             "obv_slope_period": 10,
             "roc_period": 8,        # Shorter ROC for momentum
+            "cvd_period": 14,
+            "ks_period": 20,
         },
 
         "day_scoring_weights": {
             "session_quality": 0.25,    # GBP is London-dominated
             "atr_regime": 0.20,         # Wider ranges, volatility matters
-            "momentum": 0.20,           # GBP moves fast
-            "false_breakout": 0.15,     # GBP fakes breakouts more than any major
-            "dxy_correlation": 0.10,    # Less direct than EUR
-            "volume_expansion": 0.10,   # Confirms real moves
+            "false_breakout": 0.10,
+            "hurst_regime": 0.20,
+            "cvd_divergence": 0.15,
+            "vwap_sigma_extreme": 0.10,
         },
 
         "swing_scoring_weights": {
             "trend_strength": 0.25,
             "atr_regime": 0.20,
-            "momentum": 0.20,
-            "dxy_correlation": 0.15,
-            "volume_expansion": 0.10,
-            "lr_slope": 0.10,
+            "hurst_regime": 0.20,
+            "cvd_divergence": 0.20,
+            "vwap_sigma_extreme": 0.15,
         },
 
         "day_gates": {
@@ -268,15 +273,17 @@ PAIR_PROFILES = {
             "lr_period": 25,        # Longer for JPY's slow trends
             "obv_slope_period": 14,
             "roc_period": 14,
+            "cvd_period": 14,
+            "ks_period": 20,
         },
 
         "swing_scoring_weights": {
             "yield_momentum": 0.25,     # US10Y yield drives JPY
             "trend_strength": 0.20,     # JPY trends for weeks
-            "atr_regime": 0.15,         # Position sizing calibration
-            "rsi_condition": 0.15,      # RSI extremes matter on JPY
-            "lr_slope": 0.15,           # Direction clarity
-            "volume_expansion": 0.10,   # Confirmation
+            "hurst_regime": 0.20,       # Institutional alignment
+            "cvd_divergence": 0.15,
+            "vwap_sigma_extreme": 0.10,
+            "atr_regime": 0.10,
         },
 
         "swing_gates": {

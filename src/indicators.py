@@ -5,6 +5,7 @@ Each function is self-contained and takes a DataFrame.
 """
 import pandas as pd
 import numpy as np
+from numpy import log, polyfit, sqrt, std, subtract
 from scipy import stats as scipy_stats
 from ta.volatility import AverageTrueRange, BollingerBands, KeltnerChannel
 from ta.trend import ADXIndicator, SMAIndicator, MACD
@@ -68,6 +69,46 @@ def is_bb_squeeze(df: pd.DataFrame, period: int = 20, threshold: float = 0.02) -
     """Detect Bollinger Band squeeze (low bandwidth = coiling for breakout)."""
     bw = bollinger_bandwidth(df, period)
     return bw < threshold
+
+
+# ═══════════════════════════════════════════════════════════════
+# STATISTICAL REGIME & SHAPE INDICATORS
+# ═══════════════════════════════════════════════════════════════
+
+def hurst_exponent(df: pd.DataFrame, lags_to_test: int = 20) -> float:
+    """
+    Calculate the Hurst Exponent to determine market regime.
+    H > 0.55: Trending Regime
+    H < 0.45: Mean Reverting
+    H ~ 0.5: Random Walk
+    """
+    ts = df['Close'].values
+    if len(ts) < 100:
+        return 0.5  # default to random walk if not enough data
+        
+    lags = range(2, min(lags_to_test, len(ts) // 2))
+    tau = [sqrt(std(subtract(ts[lag:], ts[:-lag]))) for lag in lags]
+    poly = polyfit(log(list(lags)), log(tau), 1)
+    return round(poly[0]*2.0, 4)
+
+
+def kurtosis_skewness(df: pd.DataFrame, period: int = 20) -> dict:
+    """
+    Calculates Statistical Kurtosis and Skewness of returns.
+    High Kurtosis = Fat tails (explosive move coming).
+    Skewness = Direction of asymmetry.
+    """
+    returns = df['Close'].pct_change().dropna().tail(period)
+    if len(returns) < 10:
+        return {"kurtosis": 0.0, "skewness": 0.0}
+        
+    kurt = scipy_stats.kurtosis(returns)
+    skew = scipy_stats.skew(returns)
+    
+    return {
+        "kurtosis": round(float(kurt), 4),
+        "skewness": round(float(skew), 4)
+    }
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -332,6 +373,59 @@ def vwap_deviation(df: pd.DataFrame) -> float:
     return round(((price - vwap_val) / vwap_val) * 100, 4)
 
 
+def cvd_proxy(df: pd.DataFrame, period: int = 14) -> float:
+    """
+    Cumulative Volume Delta Proxy.
+    Distributes volume based on candle close relative to high/low.
+    Positive = Buying pressure, Negative = Selling pressure.
+    """
+    if "Volume" not in df.columns or df["Volume"].sum() == 0:
+        return 0.0
+        
+    range_val = df["High"] - df["Low"]
+    # prevent division by zero
+    val_fixed = np.where(range_val == 0, 1e-8, range_val)
+    
+    cv_proxy = 2 * ((df["Close"] - df["Low"]) / val_fixed) - 1
+    period_volume = df["Volume"].tail(period).values
+    period_cv = cv_proxy.tail(period).values * period_volume
+    
+    return round(float(np.sum(period_cv)), 2)
+
+
+def vwap_extremes(df: pd.DataFrame) -> dict:
+    """
+    Calculates VWAP and standard deviations to find extremes.
+    Returns the VWAP limits and where the price is currently sitting.
+    """
+    if "Volume" not in df.columns or df["Volume"].sum() == 0:
+        return {"vwap": 0.0, "vwap_z_score": 0.0, "vwap_sigma_stage": 0}
+        
+    typical_price = (df["High"] + df["Low"] + df["Close"]) / 3
+    cum_vol = df["Volume"].cumsum()
+    vwap = (typical_price * df["Volume"]).cumsum() / cum_vol
+    
+    # VWAP variance
+    variance = ((typical_price - vwap) ** 2 * df["Volume"]).cumsum() / cum_vol
+    vwap_std = np.sqrt(variance)
+    
+    price = df["Close"].iloc[-1]
+    vwap_val = vwap.iloc[-1]
+    std_val = vwap_std.iloc[-1]
+    
+    if std_val == 0 or pd.isna(std_val) or pd.isna(vwap_val) or cum_vol.iloc[-1] == 0:
+         return {"vwap": 0.0, "vwap_z_score": 0.0, "vwap_sigma_stage": 0}
+         
+    z_score = (price - vwap_val) / std_val
+    sigma_stage = int(np.floor(abs(z_score))) if z_score > 0 else -int(np.floor(abs(z_score)))
+    
+    return {
+        "vwap": round(float(vwap_val), 4),
+        "vwap_z_score": round(float(z_score), 4),
+        "vwap_sigma_stage": sigma_stage
+    }
+
+
 # ═══════════════════════════════════════════════════════════════
 # MEAN REVERSION INDICATORS
 # ═══════════════════════════════════════════════════════════════
@@ -520,13 +614,22 @@ def calculate_all_indicators(df: pd.DataFrame, params: dict, current_hour_utc: i
     result["rsi_divergence_type"] = div["type"]
     result["rsi_divergence_strength"] = div["strength"]
 
-    # Volume
+    # Volume & Order Flow
     result["volume_ratio"] = volume_ratio(df, params.get("vol_sma_period", 20))
     result["obv_slope"] = obv_slope(df, params.get("obv_slope_period", 10))
     result["vwap_deviation"] = vwap_deviation(df)
+    result["cvd_proxy"] = cvd_proxy(df, params.get("cvd_period", 14))
+    
+    vwap_data = vwap_extremes(df)
+    result["vwap_z_score"] = vwap_data["vwap_z_score"]
+    result["vwap_sigma_stage"] = vwap_data["vwap_sigma_stage"]
 
-    # Mean Reversion
+    # Statistical
+    result["hurst_exponent"] = hurst_exponent(df)
     result["zscore"] = zscore(df, params.get("zscore_period", 20))
+    ks = kurtosis_skewness(df, params.get("ks_period", 20))
+    result["kurtosis"] = ks["kurtosis"]
+    result["skewness"] = ks["skewness"]
 
     # Liquidity / Structure
     result["wick_body_ratio"] = wick_body_ratio(df)

@@ -56,8 +56,11 @@ CRITICAL RULES:
 4. Use IF-THEN conditional scenarios: "IF [condition with number], THEN [what to expect/do]"
 5. Explain what conditions need to change before a trade becomes viable.
 6. Consider the macro context (DXY, yields, VIX) and how it specifically affects {pair}.
-7. This pair's personality: {profile['personality']}
-8. Be concise but thorough. max 250 words.
+7. Analyze the Hurst Exponent to classify the market regime (trending vs mean-reverting).
+8. Evaluate institutional extremes using VWAP Standard Deviations.
+9. Consider Kurtosis and Skewness to assess the probability of explosive moves.
+10. This pair's personality: {profile['personality']}
+11. Be concise but thorough. max 250 words.
 
 OUTPUT FORMAT:
 1. Current Situation (2-3 sentences with numbers)
@@ -119,8 +122,9 @@ CRITICAL RULES:
 3. Explain what changed since the last analysis (numbers comparison).
 4. Use IF-THEN conditional scenarios with exact thresholds.
 5. Consider: did the previous session's conditions play out? What's different now?
-6. This pair's personality: {profile['personality']}
-7. Be concise but thorough. max 300 words.
+6. Analyze the Hurst Exponent, VWAP Standard Deviations, and Kurtosis to explain structural changes.
+7. This pair's personality: {profile['personality']}
+8. Be concise but thorough. max 300 words.
 
 OUTPUT FORMAT:
 1. Previous Session Recap (was the prediction correct? what happened?)
