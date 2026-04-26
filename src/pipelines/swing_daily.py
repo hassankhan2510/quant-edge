@@ -4,6 +4,7 @@ Accumulates daily swing analysis in Supabase throughout the week.
 AI gets context from all previous days this week.
 Runs at 20:00 UTC Mon-Fri.
 """
+import time
 from datetime import datetime, timezone
 from src.data_fetcher import DataFetcher
 from src.macro_engine import calculate_macro_context, format_macro_summary
@@ -126,6 +127,7 @@ def run(dry_run: bool = False):
                     "macd_hist_slope": daily_metrics.get("macd_hist_slope"),
                 },
             })
+            time.sleep(5)  # Rate limit protection
 
         except Exception as e:
             print(f"  ✗ Error analyzing {pair}: {e}")

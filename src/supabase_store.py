@@ -316,7 +316,25 @@ class SupabaseStore:
                 "year", yr
             ).execute()
             print(f"  ✓ Cleaned up swing data for week {wk}/{yr}")
-            return True
         except Exception as e:
             print(f"  ✗ Failed to cleanup swing data: {e}")
+            return False
+
+    # ═══════════════════════════════════════════════════════════
+    # PSX SPECIFIC CLEANUP
+    # ═══════════════════════════════════════════════════════════
+    
+    def cleanup_psx_data(self) -> bool:
+        """Delete all PSX session analysis data (after weekly PSX report is complete)."""
+        if not self.enabled:
+            return False
+
+        try:
+            self.client.table("day_session_analysis").delete().like(
+                "pair", "PSX_%"
+            ).execute()
+            print("  ✓ Cleaned up all PSX session data from database")
+            return True
+        except Exception as e:
+            print(f"  ✗ Failed to cleanup PSX data: {e}")
             return False

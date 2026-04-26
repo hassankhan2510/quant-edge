@@ -4,6 +4,7 @@ Context-aware analysis. Pulls London's stored analysis from Supabase
 and feeds it alongside fresh calculations to AI.
 Runs at 12:30 UTC Mon-Fri.
 """
+import time
 from datetime import datetime, timezone
 from src.data_fetcher import DataFetcher
 from src.macro_engine import calculate_macro_context, format_macro_summary
@@ -115,6 +116,7 @@ def run(dry_run: bool = False):
                     "macd_hist_slope": metrics.get("macd_hist_slope"),
                 },
             })
+            time.sleep(5)  # Rate limit protection
 
         except Exception as e:
             print(f"  ✗ Error analyzing {pair}: {e}")

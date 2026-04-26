@@ -4,6 +4,7 @@ AI gets ALL week's accumulated data for comprehensive weekly report.
 Auto-deletes week data after report saved.
 Runs at 22:00 UTC Friday.
 """
+import time
 from datetime import datetime, timezone
 from src.data_fetcher import DataFetcher
 from src.ai_analyst import AIAnalyst
@@ -103,6 +104,7 @@ def run(dry_run: bool = False):
                 "accuracy_pct": accuracy,
                 "ai_summary": ai_report,
             })
+            time.sleep(5)  # Rate limit protection
 
         except Exception as e:
             print(f"  ✗ Error for {pair}: {e}")

@@ -33,6 +33,7 @@ def main():
         choices=[
             "london", "newyork", "review",
             "swing-daily", "swing-monday", "swing-friday",
+            "psx-daily", "psx-weekly"
         ],
         help="Which pipeline to run"
     )
@@ -73,6 +74,14 @@ def main():
         elif args.pipeline == "swing-friday":
             from src.pipelines.swing_friday import run
             run(dry_run=args.dry_run)
+
+        elif args.pipeline == "psx-daily":
+            from src.psx.pipelines import run_psx_pipeline
+            run_psx_pipeline("psx-daily", dry_run=args.dry_run)
+
+        elif args.pipeline == "psx-weekly":
+            from src.psx.pipelines import run_psx_pipeline
+            run_psx_pipeline("psx-weekly", dry_run=args.dry_run)
 
         else:
             print(f"Unknown pipeline: {args.pipeline}")

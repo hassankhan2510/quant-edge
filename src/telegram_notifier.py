@@ -89,21 +89,20 @@ class TelegramNotifier:
                                     pair_analyses: list) -> bool:
         """
         Send pre-session briefing with macro context + per-pair analysis.
-
-        pair_analyses: list of dicts with keys:
-            pair, score, verdict, bias, ai_analysis, metrics_summary
         """
         header = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         header += f"📋 QUANT DESK — {session_name.upper()} BRIEFING\n"
         header += f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
         header += macro_summary + "\n"
 
-        body = ""
+        # Send Macro summary first
+        all_success = self._send(header, parse_mode=None)
+
         for analysis in pair_analyses:
             profile = get_profile(analysis["pair"])
             emoji = profile.get("emoji", "📊")
 
-            body += f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            body = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             body += f"{emoji} {analysis['pair']} — {analysis['verdict']} "
             body += f"(Score: {analysis['score']}/100)\n\n"
 
@@ -118,12 +117,14 @@ class TelegramNotifier:
 
             body += analysis.get("ai_analysis", "No analysis available")
             body += "\n"
+            
+            if not self._send(body, parse_mode=None):
+                all_success = False
 
-        footer = f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        footer += f"🤖 Quant Edge | Numbers Only\n"
+        footer = f"🤖 Quant Edge | Numbers Only\n"
+        self._send(footer, parse_mode=None)
 
-        full_message = header + body + footer
-        return self._send(full_message, parse_mode=None)
+        return all_success
 
     # ═══════════════════════════════════════════════════════════
     # CONTEXTUAL BRIEFING (NY with London context)
@@ -133,8 +134,7 @@ class TelegramNotifier:
                                    macro_summary: str,
                                    pair_analyses: list) -> bool:
         """
-        Send context-aware briefing (NY with London reference).
-        Same format as pre-session but with context note.
+        Send context-aware briefing (NY with London reference) as separate messages.
         """
         header = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         header += f"📋 QUANT DESK — {session_name.upper()} BRIEFING\n"
@@ -142,12 +142,13 @@ class TelegramNotifier:
         header += f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
         header += macro_summary + "\n"
 
-        body = ""
+        all_success = self._send(header, parse_mode=None)
+
         for analysis in pair_analyses:
             profile = get_profile(analysis["pair"])
             emoji = profile.get("emoji", "📊")
 
-            body += f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            body = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             body += f"{emoji} {analysis['pair']} — {analysis['verdict']} "
             body += f"(Score: {analysis['score']}/100)\n\n"
 
@@ -161,12 +162,14 @@ class TelegramNotifier:
 
             body += analysis.get("ai_analysis", "No analysis available")
             body += "\n"
+            
+            if not self._send(body, parse_mode=None):
+                all_success = False
 
-        footer = f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        footer += f"🤖 Quant Edge | Session Memory Active\n"
+        footer = f"🤖 Quant Edge | Session Memory Active\n"
+        self._send(footer, parse_mode=None)
 
-        full_message = header + body + footer
-        return self._send(full_message, parse_mode=None)
+        return all_success
 
     # ═══════════════════════════════════════════════════════════
     # END-OF-DAY REVIEW
@@ -174,64 +177,69 @@ class TelegramNotifier:
 
     def send_eod_review(self, pair_reviews: list) -> bool:
         """
-        Send end-of-day review report.
-
-        pair_reviews: list of dicts with keys:
-            pair, london_was_correct, ny_was_correct, ai_review, accuracy_pct
+        Send end-of-day review report exactly one message per pair.
         """
         header = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         header += f"📊 QUANT DESK — END OF DAY REVIEW\n"
-        header += f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        header += f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        
+        all_success = self._send(header, parse_mode=None)
 
-        body = ""
         for review in pair_reviews:
             profile = get_profile(review["pair"])
             emoji = profile.get("emoji", "📊")
             l_icon = "✅" if review.get("london_was_correct") else "❌"
             n_icon = "✅" if review.get("ny_was_correct") else "❌"
 
-            body += f"{emoji} {review['pair']}\n"
+            body = f"{emoji} {review['pair']}\n"
             body += f"  London: {l_icon} | NY: {n_icon}\n"
             body += f"  Accuracy: {review.get('accuracy_pct', 0):.0f}%\n\n"
             body += review.get("ai_review", "No review available")
-            body += "\n\n"
+            body += "\n"
+            
+            if not self._send(body, parse_mode=None):
+                all_success = False
 
         footer = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         footer += f"🗑️ Day data cleaned from database.\n"
         footer += f"🤖 Quant Edge | Self-Improving\n"
 
-        full_message = header + body + footer
-        return self._send(full_message, parse_mode=None)
+        self._send(footer, parse_mode=None)
+        return all_success
 
     # ═══════════════════════════════════════════════════════════
     # WEEKLY SWING REPORT
     # ═══════════════════════════════════════════════════════════
 
     def send_weekly_swing_report(self, pair_reports: list) -> bool:
-        """Send Friday weekly swing report."""
+        """Send Friday weekly swing report separately per pair."""
         header = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         header += f"📈 QUANT DESK — WEEKLY SWING REPORT\n"
-        header += f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        header += f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        
+        all_success = self._send(header, parse_mode=None)
 
-        body = ""
         for report in pair_reports:
             profile = get_profile(report["pair"])
             emoji = profile.get("emoji", "📊")
             move = report.get("total_move_pct", 0)
             move_icon = "📈" if move > 0 else "📉" if move < 0 else "➡️"
 
-            body += f"{emoji} {report['pair']} — Week: {move:+.2f}% {move_icon}\n"
+            body = f"{emoji} {report['pair']} — Week: {move:+.2f}% {move_icon}\n"
             body += f"  Predictions: {report.get('predictions_correct', 0)}/{report.get('predictions_total', 0)} correct\n"
             body += f"  Accuracy: {report.get('accuracy_pct', 0):.0f}%\n\n"
             body += report.get("ai_summary", "No summary available")
-            body += "\n\n"
+            body += "\n"
+            
+            if not self._send(body, parse_mode=None):
+                all_success = False
 
         footer = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         footer += f"🗑️ Week data cleaned. Fresh start Monday.\n"
         footer += f"🤖 Quant Edge | Weekly Intelligence\n"
 
-        full_message = header + body + footer
-        return self._send(full_message, parse_mode=None)
+        self._send(footer, parse_mode=None)
+        return all_success
 
     def _get_prev_session(self, current: str) -> str:
         """Get the name of the previous session."""

@@ -5,6 +5,7 @@ AI self-reviews accuracy and suggests adjustments.
 Cleans up day data from Supabase after review.
 Runs at 21:00 UTC Mon-Fri.
 """
+import time
 from datetime import datetime, timezone
 from src.data_fetcher import DataFetcher
 from src.ai_analyst import AIAnalyst
@@ -108,6 +109,7 @@ def run(dry_run: bool = False):
                 "ai_review": ai_review,
                 "accuracy_pct": accuracy,
             })
+            time.sleep(5)  # Rate limit protection
 
             print(f"  London: {'✅' if london_correct else '❌'} (move: {london_move:+.3f}%)")
             print(f"  NY: {'✅' if ny_correct else '❌'} (move: {ny_move:+.3f}%)")
