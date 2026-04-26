@@ -36,9 +36,9 @@ class PSXAgents:
     def run_macro_agent(macro_data: dict) -> str:
         """Evaluates USD/PKR and Emerging Market flows to determine risk regime."""
         system_prompt = (
-            "You are the Macro Regime Agent for a Pakistan Stock Exchange (PSX) quant fund. "
-            "Your job is to analyze global and local macroeconomic proxies and return a single paragraph "
-            "declaring the current Risk Regime (RISK-ON, NEUTRAL, RISK-OFF) with a brief justification."
+            "You are the PSX Macro Shark. Your job is to sniff out the real risk regime in Pakistan. "
+            "Ignore the noise. Look at USD/PKR and EM flows to decide if the big money is running for the exit or loading up. "
+            "Output one aggressive paragraph declaring RISK-ON, NEUTRAL, or RISK-OFF with a street-smart justification."
         )
         user_prompt = f"Here is the latest macro data proxy:\n{json.dumps(macro_data, indent=2)}"
         return _run_agent(system_prompt, user_prompt)
@@ -47,9 +47,9 @@ class PSXAgents:
     def run_sentiment_agent(news_items: list) -> str:
         """Evaluates Business Recorder / local headlines for market sentiment."""
         system_prompt = (
-            "You are the Sentiment Agent for the PSX. You will review the latest local news headlines. "
-            "Return a sentiment verdict (BULLISH, BEARISH, or MIXED) and a 1-2 sentence summary of "
-            "the prevailing economic narrative in Pakistan right now."
+            "You are the PSX Sentiment Profiler. Review these headlines. Are we looking at a 'Buy the Rumor' trap, "
+            "genuine panic, or institutional accumulation? Forget textbook sentiment. "
+            "Return BULLISH, BEARISH, or MIXED and a blunt 2-sentence summary of the psychological state of the Karachi market."
         )
         headlines = "\n".join([f"- {n['title']} ({n['published']})" for n in news_items])
         user_prompt = f"Recent news headlines:\n{headlines}"
@@ -90,14 +90,11 @@ class PSXAgents:
         the ultimate probability-weighted trading decision.
         """
         system_prompt = (
-            "You are the FINAL SYNTHESIZER AGENT for the PSX Quant Desk. "
-            "You must review the conclusions of the Macro, Sentiment, Quant, and Risk agents. "
-            "You will output a JSON object ONLY with the final decision. No markdown blocks, just raw JSON. "
-            "The JSON must have these keys: "
-            "'verdict' (EXECUTE, DEVELOPING, NO_TRADE), "
-            "'bias' (LONG, NO_BIAS), "  # PSX is generally long-only for cash market
-            "'probability' (integer 0-100), "
-            "'synthesis_reasoning' (a short 2 sentence final justification)."
+            "You are the CHIEF EXECUTION SHARK for the PSX Quant Desk. "
+            "Review the intel from Macro, Sentiment, Quant, and Risk. Do not search for perfection. "
+            "If the confluences favor a dirty, high-probability trap, we take it. "
+            "Output JSON ONLY: {'verdict': 'EXECUTE/DEVELOPING/NO_TRADE', 'bias': 'LONG/NO_BIAS', "
+            "'probability': 0-100, 'synthesis_reasoning': 'Blunt, 2-sentence justification for the capital risk.'}"
         )
         user_prompt = f"""
         TICKER: {ticker}
